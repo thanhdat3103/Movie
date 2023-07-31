@@ -8,8 +8,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -24,7 +26,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -86,36 +89,54 @@ fun SliderView(viewModel: MainViewModel, onMovieSelected: (Movies) -> Unit) {
     val coroutineScope = rememberCoroutineScope()
 
     Column(
-        modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        // Hiển thị thông tin chi tiết của phim được chọn
+        // Show details of selected movie
         var selectedMovie by remember { mutableStateOf<Movies?>(null) }
 
         val movieList = viewModel.movieListResponse
         if (movieList.isNotEmpty() && selectedMovie == null) {
-            selectedMovie = movieList[0] // Đặt phim đầu tiên làm phim được chọn mặc định
+            selectedMovie = movieList[0] // Select the first movie as the default selected movie
         }
 
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
         ) {
-            // Hiển thị thông tin chi tiết của phim được chọn
+            // Phần bên trái hiển thị thông tin chi tiết của phim
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 16.dp)
+                    .align(CenterVertically)
+            ) { selectedMovie?.let { movie -> MovieDetails(movie = movie) } }
+
+            // Phần bên phải hiển thị hình ảnh của phim
             selectedMovie?.let { movie ->
-                Text(
-                    text = "Tên phim: ${movie.name}",
-                    style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Text(
-                    text = "Thể loại: ${movie.category}",
-                    style = TextStyle(fontSize = 14.sp),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Text(
-                    text = "Mô tả: ${movie.desc}",
-                    style = TextStyle(fontSize = 14.sp),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .aspectRatio(0.8f)
+                ) {
+                    val painter = rememberImagePainter(
+                        data = movie.imageUrl,
+                        builder = {
+                            placeholder(R.drawable.placeholder)
+                            scale(Scale.FILL)
+                        })
+                    Image(
+                        painter = painter,
+                        contentDescription = "",
+                        Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(10.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
         }
 
@@ -127,7 +148,6 @@ fun SliderView(viewModel: MainViewModel, onMovieSelected: (Movies) -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // Mũi tên quá trái (previous arrow)
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = null,
@@ -194,6 +214,45 @@ fun SliderView(viewModel: MainViewModel, onMovieSelected: (Movies) -> Unit) {
             dotSize = 12.dp,
             padding = 8.dp
         )
+    }
+}
+
+@Composable
+fun MovieDetails(movie: Movies) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).align(End),
+            horizontalArrangement = Arrangement.End // Đặt các Text về phía bên phải
+        ) {
+            Text(
+                text = "Tên phim: ${movie.name}",
+                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold),
+                textAlign = TextAlign.End
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).align(End),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                text = "Thể loại: ${movie.category}",
+                style = TextStyle(fontSize = 14.sp),
+                textAlign = TextAlign.End)
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).align(End),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                text = "Mô tả: ${movie.desc}",
+                style = TextStyle(fontSize = 14.sp),
+                textAlign = TextAlign.End
+            )
+        }
     }
 }
 
@@ -277,15 +336,14 @@ fun DotsIndicator(
     activeDotColor: Color,
     inactiveDotColor: Color,
     dotSize: Dp,
-    padding: Dp,
+    padding: Dp
 ) {
     val pageCount = pagerState.pageCount
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(dotSize / 2),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(padding)
+        verticalAlignment = CenterVertically,
+        modifier = Modifier.padding(padding)
     ) {
         for (pageIndex in 0 until pageCount) {
             val color = if (pageIndex == pagerState.currentPage) activeDotColor else inactiveDotColor
