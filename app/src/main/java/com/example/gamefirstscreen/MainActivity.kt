@@ -13,8 +13,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.CardDefaults.cardColors
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -41,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import coil.size.Scale
+import com.example.gamefirstscreen.ui.theme.FocusableComposable
 import com.example.gamefirstscreen.ui.theme.GameFirstScreenTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -51,7 +54,7 @@ import java.lang.Integer.min
 
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalPagerApi::class)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -66,8 +69,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    val state = rememberPagerState()
-                    val scope = rememberCoroutineScope()
+
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -148,20 +150,36 @@ fun SliderView(viewModel: MainViewModel, onMovieSelected: (Movies) -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = null,
-                tint = Color.Black,
-                modifier = Modifier
-                    .clickable {
-                        if (pagerState.currentPage > 0) {
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                            }
-                        }
+            FocusableComposable() { focused ->
+                ElevatedCard(
+                    modifier = Modifier.padding(10.dp),
+                    shape = CircleShape,
+                    colors = with(MaterialTheme.colorScheme) {
+                        cardColors(
+                            containerColor = if (focused) primaryContainer else surface,
+                            contentColor = onPrimaryContainer
+                        )
                     }
-                    .padding(horizontal = 16.dp)
-            )
+                )
+                {
+                    Icon(
+                        imageVector = Icons.Filled.ChevronLeft,
+                        contentDescription = null,
+                        tint = Color.Black,
+                        modifier = Modifier
+                            .clickable {
+                                if (pagerState.currentPage > 0) {
+                                    coroutineScope.launch {
+                                        pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                                    }
+                                }
+                            }
+                            .size(54.dp)
+                            .clip(CircleShape)
+                    )
+                }
+            }
+
 
             // HorizontalPager
             Box(
@@ -172,7 +190,7 @@ fun SliderView(viewModel: MainViewModel, onMovieSelected: (Movies) -> Unit) {
                 HorizontalPager(
                     state = pagerState,
                     count = (viewModel.movieListResponse.size + 3) / 4,
-                    modifier = Modifier.fillMaxSize() // Can giữa các items trong HorizontalPager
+                    modifier = Modifier.fillMaxSize()
                 ) { pageIndex ->
                     val startIndex = pageIndex * 4
                     val endIndex = min(startIndex + 4, viewModel.movieListResponse.size)
@@ -190,21 +208,37 @@ fun SliderView(viewModel: MainViewModel, onMovieSelected: (Movies) -> Unit) {
                 }
             }
 
-            // Mũi tên qua phải (next arrow)
-            Icon(
-                imageVector = Icons.Default.ArrowForward,
-                contentDescription = null,
-                tint = Color.Black,
-                modifier = Modifier
-                    .clickable {
-                        if (pagerState.currentPage < pagerState.pageCount - 1) {
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            }
-                        }
+            //Next arrow
+            FocusableComposable() { focused ->
+                ElevatedCard(
+                    modifier = Modifier.padding(10.dp),
+                    shape = CircleShape,
+                    colors = with(MaterialTheme.colorScheme) {
+                        cardColors(
+                            containerColor = if (focused) primaryContainer else surface,
+                            contentColor = onPrimaryContainer
+                        )
                     }
-                    .padding(horizontal = 16.dp)
-            )
+                )
+                {
+                    Icon(
+                        imageVector = Icons.Filled.ChevronRight,
+                        contentDescription = null,
+                        tint = Color.Black,
+                        modifier = Modifier
+                            .clickable {
+                                if (pagerState.currentPage < pagerState.pageCount - 1) {
+                                    coroutineScope.launch {
+                                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                    }
+                                }
+                            }
+                            .size(54.dp)
+                            .clip(CircleShape)
+                    )
+                }
+            }
+
         }
 
         DotsIndicator(
@@ -257,11 +291,7 @@ fun MovieDetails(movie: Movies) {
 }
 
 @Composable
-fun MovieRow(
-    movies: List<Movies>,
-    selectedMovie: Movies?,
-    onMovieSelected: (Movies) -> Unit
-) {
+fun MovieRow(movies: List<Movies>, selectedMovie: Movies?, onMovieSelected: (Movies) -> Unit) {
     Row(modifier = Modifier.fillMaxSize()) {
         for (movie in movies) {
             MovieItem(
@@ -276,14 +306,10 @@ fun MovieRow(
 }
 
 @Composable
-fun MovieItem(
-    movie: Movies,
-    isSelected: Boolean,
-    onMovieClick: () -> Unit
-) {
+fun MovieItem(movie: Movies, isSelected: Boolean, onMovieClick: () -> Unit) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val spacing = 0.dp // Khoảng cách giữa các item trong MovieRow
-    val itemWidth = (screenWidth - (spacing * 5) - 48.dp - 64.dp) / 4 // Chia 4 để hiển thị 4 items, 48 là chi rộng của 2 mũi tên và 64 và chiều rộng của padding 2 mũi tên theo chiều ngang
+    val spacing = 8.dp // Khoảng cách giữa các item trong MovieRow
+    val itemWidth = (screenWidth - (spacing * 5) - 54.dp - 54.dp) / 4
 
     Column(
         modifier = Modifier
@@ -305,8 +331,8 @@ fun MovieItem(
                 painter = painter,
                 contentDescription = "",
                 Modifier
-                    .padding(8.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .padding(spacing)
+                    .clip(RoundedCornerShape(20.dp))
                     .fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
@@ -327,17 +353,10 @@ fun MovieItem(
     }
 }
 
-
-
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun DotsIndicator(
-    pagerState: PagerState,
-    activeDotColor: Color,
-    inactiveDotColor: Color,
-    dotSize: Dp,
-    padding: Dp
-) {
+fun DotsIndicator(pagerState: PagerState, activeDotColor: Color, inactiveDotColor: Color, dotSize: Dp, padding: Dp) {
+
     val pageCount = pagerState.pageCount
 
     Row(
@@ -354,12 +373,11 @@ fun DotsIndicator(
 
 @Composable
 fun Dot(color: Color, size: Dp) {
-    Box(
-        modifier = Modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(color)
-            .padding(4.dp) // Padding để tạo khoảng cách giữa các chấm
+    Box(modifier = Modifier
+        .size(size)
+        .clip(CircleShape)
+        .background(color)
+        .padding(4.dp) // Padding to create distance between dots
     )
 }
 
