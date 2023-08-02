@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import coil.size.Scale
-import com.example.gamefirstscreen.ui.theme.FocusableComposable
+import com.example.gamefirstscreen.ui.FocusableComposable
 import com.example.gamefirstscreen.ui.theme.GameFirstScreenTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager

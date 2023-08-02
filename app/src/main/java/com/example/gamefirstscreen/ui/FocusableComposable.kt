@@ -1,4 +1,4 @@
-package com.example.gamefirstscreen.ui.theme
+package com.example.gamefirstscreen.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
